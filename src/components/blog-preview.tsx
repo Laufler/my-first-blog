@@ -6,6 +6,7 @@ import { useMarkdownRender } from '@/hooks/use-markdown-render'
 import { useSize } from '@/hooks/use-size'
 import { BlogSidebar } from '@/components/blog-sidebar'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
+import type { DownloadLink } from '@/app/write/types'
 
 type BlogPreviewProps = {
 	markdown: string
@@ -15,9 +16,10 @@ type BlogPreviewProps = {
 	summary?: string
 	cover?: string
 	slug?: string
+	downloadLinks?: DownloadLink[]
 }
 
-export function BlogPreview({ markdown, title, tags, date, summary, cover, slug }: BlogPreviewProps) {
+export function BlogPreview({ markdown, title, tags, date, summary, cover, slug, downloadLinks }: BlogPreviewProps) {
 	const { maxSM: isMobile } = useSize()
 	const { content, toc, loading } = useMarkdownRender(markdown)
 	const { siteContent } = useConfigStore()
@@ -51,7 +53,7 @@ export function BlogPreview({ markdown, title, tags, date, summary, cover, slug 
 				</div>
 			</motion.article>
 
-			{!isMobile && <BlogSidebar cover={cover} summary={summary} toc={toc} slug={slug} />}
+			{!isMobile && <BlogSidebar cover={cover} summary={summary} toc={toc} slug={slug} downloadLinks={downloadLinks} />}
 		</div>
 	)
 }
