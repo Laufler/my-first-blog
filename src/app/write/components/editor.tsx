@@ -5,6 +5,16 @@ import { useRef } from 'react'
 
 const defaultText = 'text'
 
+// 生成slug的函数
+const generateSlug = (title: string): string => {
+	return title
+		.toLowerCase()
+		.replace(/[^\w\s-]/g, '') // 移除特殊字符，保留字母、数字、空格和连字符
+		.trim()
+		.replace(/\s+/g, '-') // 将空格替换为连字符
+		.replace(/-+/g, '-') // 移除多余的连字符
+}
+
 export function WriteEditor() {
 	const { form, updateForm, images, addFiles } = useWriteStore()
 	const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -155,6 +165,13 @@ export function WriteEditor() {
 		}
 	}
 
+	// 处理标题变化，自动生成slug
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const title = e.target.value
+		const slug = generateSlug(title)
+		updateForm({ title, slug })
+	}
+
 	return (
 		<motion.div
 			initial={{ opacity: 0, scale: 0.8 }}
@@ -167,7 +184,7 @@ export function WriteEditor() {
 					placeholder='标题'
 					className='bg-card flex-1 rounded-lg border px-3 py-2 text-sm'
 					value={form.title}
-					onChange={e => updateForm({ title: e.target.value })}
+					onChange={handleTitleChange}
 				/>
 				<input
 					type='text'
