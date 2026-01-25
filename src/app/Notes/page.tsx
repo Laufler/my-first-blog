@@ -1,177 +1,191 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { toast } from 'sonner'
-import GridView from './grid-view'
-import CreateDialog from './components/create-dialog'
-import { pushShares } from './services/push-notes'
-import { useAuthStore } from '@/hooks/use-auth'
+import Link from 'next/link'
+import Image from 'next/image'
 import { useConfigStore } from '@/app/(home)/stores/config-store'
-import initialList from './list.json'
-import type { Share } from './components/share-card'
-import type { LogoItem } from './components/logo-upload-dialog'
+import { useState } from 'react'
+import { useBlogIndex } from '@/hooks/use-blog-index'
 
 export default function Page() {
-	const [shares, setShares] = useState<Share[]>(initialList as Share[])
-	const [originalShares, setOriginalShares] = useState<Share[]>(initialList as Share[])
-	const [isEditMode, setIsEditMode] = useState(false)
-	const [isSaving, setIsSaving] = useState(false)
-	const [editingShare, setEditingShare] = useState<Share | null>(null)
-	const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-	const [logoItems, setLogoItems] = useState<Map<string, LogoItem>>(new Map())
-	const keyInputRef = useRef<HTMLInputElement>(null)
-
-	const { isAuth, setPrivateKey } = useAuthStore()
 	const { siteContent } = useConfigStore()
-	const hideEditButton = siteContent.hideEditButton ?? false
+	const { items: articles, loading } = useBlogIndex()
+	const [searchTerm, setSearchTerm] = useState('')
+	const [selectedTag, setSelectedTag] = useState<string>('all')
+	
+	// 筛选出分类为"笔记"的文章
+	const notesArticles = articles.filter(item => item.category === '笔记')
+	
+	// 获取所有标签
+	const allTags = Array.from(new Set(notesArticles.flatMap(article => article.tags || [])))
+	
+	// 根据搜索词和标签筛选文章
+	const filteredArticles = notesArticles.filter(article => {
+		const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+									(article.summary && article.summary.toLowerCase().includes(searchTerm.toLowerCase()))
+		const matchesTag = selectedTag === 'all' || (article.tags && article.tags.includes(selectedTag))
+		return matchesSearch && matchesTag
+	})
+	
+	console.log('Total articles:', articles.length)
+	console.log('notesArticles length:', notesArticles.length)
+	console.log('filteredArticles length:', filteredArticles.length)
+	console.log('allTags:', allTags)
 
-	const handleUpdate = (updatedShare: Share, oldShare: Share, logoItem?: LogoItem) => {
-		setShares(prev => prev.map(s => (s.url === oldShare.url ? updatedShare : s)))
-		if (logoItem) {
-			setLogoItems(prev => {
-				const newMap = new Map(prev)
-				newMap.set(updatedShare.url, logoItem)
-				return newMap
-			})
-		}
-	}
-
-	const handleAdd = () => {
-		setEditingShare(null)
-		setIsCreateDialogOpen(true)
-	}
-
-	const handleSaveShare = (updatedShare: Share) => {
-		if (editingShare) {
-			const updated = shares.map(s => (s.url === editingShare.url ? updatedShare : s))
-			setShares(updated)
-		} else {
-			setShares([...shares, updatedShare])
-		}
-	}
-
-	const handleDelete = (share: Share) => {
-		if (confirm(`确定要删除 ${share.name} 吗？`)) {
-			setShares(shares.filter(s => s.url !== share.url))
-		}
-	}
-
-	const handleChoosePrivateKey = async (file: File) => {
-		try {
-			const text = await file.text()
-			setPrivateKey(text)
-			// 选择文件后自动保存
-			await handleSave()
-		} catch (error) {
-			console.error('Failed to read private key:', error)
-			toast.error('读取密钥文件失败')
-		}
-	}
-
-	const handleSaveClick = () => {
-		if (!isAuth) {
-			keyInputRef.current?.click()
-		} else {
-			handleSave()
-		}
-	}
-
-	const handleSave = async () => {
-		setIsSaving(true)
-
-		try {
-			await pushShares({
-				shares,
-				logoItems
-			})
-
-			setOriginalShares(shares)
-			setLogoItems(new Map())
-			setIsEditMode(false)
-			toast.success('保存成功！')
-		} catch (error: any) {
-			console.error('Failed to save:', error)
-			toast.error(`保存失败: ${error?.message || '未知错误'}`)
-		} finally {
-			setIsSaving(false)
-		}
-	}
-
-	const handleCancel = () => {
-		setShares(originalShares)
-		setLogoItems(new Map())
-		setIsEditMode(false)
-	}
-
-	const buttonText = isAuth ? '保存' : '导入密钥'
-
-	useEffect(() => {
-		const handleKeyDown = (e: KeyboardEvent) => {
-			if (!isEditMode && (e.ctrlKey || e.metaKey) && e.key === ',') {
-				e.preventDefault()
-				setIsEditMode(true)
-			}
-		}
-
-		window.addEventListener('keydown', handleKeyDown)
-		return () => {
-			window.removeEventListener('keydown', handleKeyDown)
-		}
-	}, [isEditMode])
+	// 截断文本函数
+	const truncateText = (text, maxLength) => {
+		if (text.length <= maxLength) return text;
+		return text.substring(0, maxLength) + '...';
+	};
 
 	return (
-		<>
-			<input
-				ref={keyInputRef}
-				type='file'
-				accept='.pem'
-				className='hidden'
-				onChange={async e => {
-					const f = e.target.files?.[0]
-					if (f) await handleChoosePrivateKey(f)
-					if (e.currentTarget) e.currentTarget.value = ''
-				}}
-			/>
+		<div className='mx-auto w-full max-w-[1920px] px-6 pt-24 pb-12'>
+			<div className='mb-8 space-y-4'>
+				<input
+					type='text'
+					placeholder='搜索笔记...'
+					value={searchTerm}
+					onChange={e => setSearchTerm(e.target.value)}
+					className='focus:ring-brand mx-auto block w-full max-w-md rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:outline-none'
+				/>
 
-			<GridView shares={shares} isEditMode={isEditMode} onUpdate={handleUpdate} onDelete={handleDelete} />
+				<div className='flex flex-wrap justify-center gap-2'>
+					<button
+						onClick={() => setSelectedTag('all')}
+						className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
+							selectedTag === 'all' ? 'bg-brand text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+						}`}>
+						全部
+					</button>
+					{allTags.map(tag => (
+						<button
+							key={tag}
+							onClick={() => setSelectedTag(tag)}
+							className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
+								selectedTag === tag ? 'bg-brand text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+							}`}>
+							{tag}
+						</button>
+					))}
+				</div>
+			</div>
 
-			<motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} className='absolute top-4 right-6 flex gap-3 max-sm:hidden'>
-				{isEditMode ? (
-					<>
-						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
-							onClick={handleCancel}
-							disabled={isSaving}
-							className='rounded-xl border bg-white/60 px-6 py-2 text-sm'>
-							取消
-						</motion.button>
-						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
-							onClick={handleAdd}
-							className='rounded-xl border bg-white/60 px-6 py-2 text-sm'>
-							添加
-						</motion.button>
-						<motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={handleSaveClick} disabled={isSaving} className='brand-btn px-6'>
-							{isSaving ? '保存中...' : buttonText}
-						</motion.button>
-					</>
-				) : (
-					!hideEditButton && (
-						<motion.button
-							whileHover={{ scale: 1.05 }}
-							whileTap={{ scale: 0.95 }}
-							onClick={() => setIsEditMode(true)}
-							className='bg-card rounded-xl border px-6 py-2 text-sm backdrop-blur-sm transition-colors hover:bg-white/80'>
-							编辑
-						</motion.button>
-					)
+			<div style={{ width: '100%', maxWidth: '1920px', margin: '0 auto', padding: '0 20px' }}>
+				<div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center' }}>
+					{filteredArticles.map((article, index) => (
+						<motion.div 
+							key={article.slug} 
+							initial={{ opacity: 0, scale: 0.9 }}
+							animate={{ opacity: 1, scale: 1 }}
+							whileHover={{ scale: 1.03, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+							transition={{ duration: 0.3 }}
+							style={{ 
+								width: '250px', 
+								height: '250px', // 1:1 正方形
+								borderRadius: '0.75rem',
+								backgroundColor: 'rgba(255, 255, 255, 0.6)',
+								backdropFilter: 'blur(4px)',
+								flexShrink: 0,
+								border: '1px solid rgba(255, 255, 255, 0.8)',
+								boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+								overflow: 'hidden',
+								position: 'relative'
+							}}
+						>
+							<Link href={`/blog/${article.slug}`} style={{ display: 'block', height: '100%', textDecoration: 'none' }}>
+								{/* 封面图片 */}
+								<div style={{ 
+									position: 'absolute',
+									top: 0,
+									left: 0,
+									width: '100%', 
+									height: '100%', 
+									overflow: 'hidden'
+								}}>
+									{article.cover && (
+										<img
+											src={article.cover}
+											alt={article.title}
+											style={{ 
+												objectFit: 'cover', 
+												width: '100%', 
+												height: '100%'
+											}}
+										/>
+									)}
+								</div>
+								
+								{/* 卡片内容 - 透明背景，层级在封面之上 */}
+								<div style={{ 
+									position: 'absolute',
+									bottom: 0,
+									left: 0,
+									right: 0,
+									padding: '16px',
+									transition: 'transform 0.3s ease, opacity 0.3s ease',
+									transform: 'translateY(0)',
+									opacity: 1,
+									background: 'linear-gradient(transparent, rgba(255, 255, 255, 0.8))'
+								}}
+									className='group-hover:transform group-hover:translate-y-full group-hover:opacity-0'>
+									<h3 style={{ 
+										fontSize: '1rem', 
+										fontWeight: '700', 
+										marginBottom: '8px', 
+										wordBreak: 'break-all', 
+										overflow: 'hidden', 
+										textOverflow: 'ellipsis', 
+										whiteSpace: 'nowrap', 
+										color: '#000'
+									}}>
+										{article.title}
+									</h3>
+									
+									{/* 标签 */}
+									{article.tags && article.tags.length > 0 && (
+										<div style={{ 
+											display: 'flex', 
+											flexWrap: 'wrap', 
+											gap: '4px'
+										}}>
+											{article.tags.slice(0, 3).map((tag, tagIndex) => (
+												<span key={tagIndex} style={{ 
+													fontSize: '0.7rem', 
+													color: '#fff', 
+													backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+													padding: '2px 8px', 
+													borderRadius: '12px',
+													backdropFilter: 'blur(2px)'
+												}}>
+													{tag}
+												</span>
+											))}
+											{article.tags.length > 3 && (
+												<span style={{ 
+													fontSize: '0.7rem', 
+													color: '#fff',
+													backgroundColor: 'rgba(0, 0, 0, 0.6)',
+													padding: '2px 8px',
+													borderRadius: '12px',
+													backdropFilter: 'blur(2px)'
+												}}>
+													+{article.tags.length - 3}
+												</span>
+											)}
+										</div>
+									)}
+								</div>
+							</Link>
+						</motion.div>
+					))}
+				</div>
+
+				{filteredArticles.length === 0 && (
+					<div className='mt-12 text-center text-gray-500'>
+						<p>没有找到相关笔记</p>
+					</div>
 				)}
-			</motion.div>
-
-			{isCreateDialogOpen && <CreateDialog share={editingShare} onClose={() => setIsCreateDialogOpen(false)} onSave={handleSaveShare} />}
-		</>
+			</div>
+		</div>
 	)
 }
