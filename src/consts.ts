@@ -9,7 +9,7 @@ export const BLOG_SLUG_KEY = process.env.BLOG_SLUG_KEY || ''
  */
 export const GITHUB_CONFIG = {
 	OWNER: process.env.NEXT_PUBLIC_GITHUB_OWNER || 'RT622',
-	REPO: process.env.NEXT_PUBLIC_GITHUB_REPO || 'blog',
+	REPO: process.env.NEXT_PUBLIC_GITHUB_REPO || '2gou',
 	BRANCH: process.env.NEXT_PUBLIC_GITHUB_BRANCH || 'main',
 	APP_ID: process.env.NEXT_PUBLIC_GITHUB_APP_ID || '2721846',
 	ENCRYPT_KEY: process.env.NEXT_PUBLIC_GITHUB_ENCRYPT_KEY || 'wudishiduomejimo',
