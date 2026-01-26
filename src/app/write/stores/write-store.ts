@@ -59,7 +59,9 @@ const initialForm: PublishForm = {
 	summary: '',
 	hidden: false,
 	category: '',
-	downloadLinks: []
+	downloadLinks: [],
+	passwordProtected: false,
+	password: ''
 }
 
 export const useWriteStore = create<WriteStore>((set, get) => ({
@@ -230,7 +232,9 @@ export const useWriteStore = create<WriteStore>((set, get) => ({
 					summary: blog.config.summary || '',
 					hidden: blog.config.hidden || false,
 					category: blog.config.category || '',
-					downloadLinks: blog.config.downloadLinks || []
+					downloadLinks: blog.config.downloadLinks || [],
+					passwordProtected: blog.config.passwordProtected || false,
+					password: blog.config.password || ''
 				},
 				images,
 				cover,
