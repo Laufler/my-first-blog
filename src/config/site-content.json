@@ -38,17 +38,10 @@
 	"currentBackgroundImageId": "",
 	"socialButtons": [
 		{
-			"id": "github",
-			"type": "wechat",
-			"value": "https://github.com/RT622",
-			"label": "Github",
-			"order": 3
-		},
-		{
 			"id": "juejin",
 			"type": "bilibili",
 			"value": "/images/social-buttons/7f509f0a4c020a31.png",
-			"label": "稀土掘金",
+			"label": "Saipherus",
 			"order": 2
 		},
 		{
