@@ -206,7 +206,7 @@ export default function Page() {
 
 				{filteredArticles.length === 0 && (
 					<div className='mt-12 text-center text-gray-500'>
-						<p>没有找到相关人物卡</p>
+						<p>没有找到相关影视</p>
 					</div>
 				)}
 			</div>
