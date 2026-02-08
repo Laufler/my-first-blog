@@ -470,9 +470,6 @@ export default function BlogPage() {
 						</motion.div>
 					)
 				})}
-				{items.length > 0 && (
-					<div className='text-center'>
-				)}
 			</div>
 
 			<div className='pt-12'>
