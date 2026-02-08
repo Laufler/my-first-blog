@@ -50,9 +50,16 @@
 			"value": "Laufler@outlook.com",
 			"label": "",
 			"order": 1
+		},
+		{
+			"id": "button-1770582173685",
+			"type": "wechat",
+			"value": "/images/social-buttons/1c1a8137f4ea03d5.jpg",
+			"label": "",
+			"order": 3
 		}
 	],
-	"clockShowSeconds": false,
+	"clockShowSeconds": true,
 	"summaryInContent": false,
 	"isCachePem": true,
 	"hideEditButton": false,
