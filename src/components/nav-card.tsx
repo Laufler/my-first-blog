@@ -40,7 +40,7 @@ const list = [
 	{
 		icon: AboutOutlineSVG,
 		iconActive: AboutFilledSVG,
-		label: '人物卡片',
+		label: '影视记录',
 		href: '/Chara'
 	},
 	{
