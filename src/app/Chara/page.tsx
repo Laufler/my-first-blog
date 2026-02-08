@@ -64,7 +64,7 @@ export default function Page() {
 			<div className='mb-8 space-y-4'>
 				<input
 					type='text'
-					placeholder='搜索人物卡...'
+					placeholder='搜索影视名...'
 					value={searchTerm}
 					onChange={e => setSearchTerm(e.target.value)}
 					className='focus:ring-brand mx-auto block w-full max-w-md rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:outline-none'
