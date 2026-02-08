@@ -37,7 +37,7 @@ export default function Page() {
 	}, [siteContent.enablePasswordAccess, siteContent.passwordAccessCategories, siteContent.passwordAccessPassword])
 	
 	// 筛选出分类为"人物卡"的文章
-	const charaArticles = articles.filter(item => item.category === '人物卡')
+	const charaArticles = articles.filter(item => item.category === '影视')
 	
 	// 获取所有标签
 	const allTags = Array.from(new Set(charaArticles.flatMap(article => article.tags || [])))
